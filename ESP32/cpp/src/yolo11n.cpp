@@ -71,6 +71,7 @@ struct KeyPoint {
 
 struct yolo_box_t {
     String class_name;
+    String model;
     float confidence;
     float x1;
     float y1;
@@ -163,6 +164,7 @@ void setup_yolo_detect(void)
     m5_module_llm::ApiYoloSetupConfig_t yolo_config;
     yolo_config.input = {"yolo.jpeg.base64"};
     yolo_config.model = "yolo11n";
+    yolo_box.model    = "yolo11n";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
     while (yolo_work_id == nullptr) vTaskDelay(100);
     M5.Display.fillRect(0, (CoreS3.Display.height() / 2) - 10, 320, 25, WHITE);
@@ -178,6 +180,7 @@ void setup_yolo_pose(void)
     m5_module_llm::ApiYoloSetupConfig_t yolo_config;
     yolo_config.input = {"yolo.jpeg.base64"};
     yolo_config.model = "yolo11n-pose";
+    yolo_box.model    = "yolo11n-pose";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
     while (yolo_work_id == nullptr) vTaskDelay(100);
     M5.Display.fillRect(0, (CoreS3.Display.height() / 2) - 10, 320, 25, WHITE);
@@ -193,6 +196,7 @@ void setup_yolo_seg(void)
     m5_module_llm::ApiYoloSetupConfig_t yolo_config;
     yolo_config.input = {"yolo.jpeg.base64"};
     yolo_config.model = "yolo11n-seg";
+    yolo_box.model    = "yolo11n-seg";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
     while (yolo_work_id == nullptr) vTaskDelay(100);
     M5.Display.fillRect(0, (CoreS3.Display.height() / 2) - 10, 320, 25, WHITE);
@@ -208,6 +212,7 @@ void setup_yolo_hand(void)
     m5_module_llm::ApiYoloSetupConfig_t yolo_config;
     yolo_config.input = {"yolo.jpeg.base64"};
     yolo_config.model = "yolo11n-hand-pose";
+    yolo_box.model    = "yolo11n-hand-pose";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
     while (yolo_work_id == nullptr) vTaskDelay(100);
     M5.Display.fillRect(0, (CoreS3.Display.height() / 2) - 10, 320, 25, WHITE);
@@ -297,12 +302,7 @@ void menuBackTask(void* pvParameters)
         box_list[4].y     = 0;
         box_list[4].w     = 100;
         box_list[4].h     = 70;
-        box_list[4].color = TFT_CYAN;
-        box_list[4].draw();
-
-        CoreS3.Display.setTextColor(CYAN);
-        M5.Display.setTextSize(1);
-        M5.Display.drawString("Back", 50, 30);
+        box_list[4].color = TFT_WHITE;
 
         auto count = M5.Touch.getCount();
 
@@ -311,7 +311,9 @@ void menuBackTask(void* pvParameters)
             if (t.wasClicked() && box_list[4].contain(t.x, t.y)) {
                 box_list[4].touch_id = t.id;
                 state                = false;
-                esp_restart();
+                vTaskDelay(100);
+                module_llm.yolo.exit(yolo_work_id);
+                setup_menu();
             }
         }
 
@@ -364,7 +366,7 @@ void parseJson(const char* jsonString)
 
             JsonArray kps = result["kps"].as<JsonArray>();
 
-            if (yolo_box.class_name == "person") {
+            if (yolo_box.model == "yolo11n-pose") {
                 if (kps.size() == 51) {
                     for (int i = 0; i < 17; ++i) {
                         pose_boxes[i].keypoint.x = kps[i * 3].as<float>();
@@ -374,7 +376,7 @@ void parseJson(const char* jsonString)
                 }
             }
 
-            if (yolo_box.class_name == "hand") {
+            if (yolo_box.model == "yolo11n-hand-pose") {
                 if (kps.size() == 63) {
                     for (int i = 0; i < 21; ++i) {
                         hand_boxes[i].keypoint.x = kps[i * 3].as<float>();
@@ -386,9 +388,11 @@ void parseJson(const char* jsonString)
 
             JsonArray mask = result["mask"].as<JsonArray>();
 
-            if (kps.size() == 32) {
-                for (int i = 0; i < 32; ++i) {
-                    masks[i] = mask[i].as<float>();
+            if (yolo_box.model == "yolo11n-mask") {
+                if (kps.size() == 32) {
+                    for (int i = 0; i < 32; ++i) {
+                        masks[i] = mask[i].as<float>();
+                    }
                 }
             }
         }
@@ -439,6 +443,8 @@ void cameraTask(void* pvParameters)
                 free(out_jpg);
                 CoreS3.Display.pushImage(0, 0, CoreS3.Display.width(), CoreS3.Display.height(),
                                          (uint16_t*)CoreS3.Camera.fb->buf);
+                box_list[4].draw();
+                M5.Display.drawString("<", 30, 40);
                 if (yolo_box.frame) {
                     yolo_box.frame--;
 
@@ -463,7 +469,7 @@ void cameraTask(void* pvParameters)
                                                  {9, 10, GREENYELLOW}, {10, 11, MAGENTA},     {11, 12, YELLOW},
                                                  {13, 14, ORANGE},     {14, 15, GREENYELLOW}, {15, 16, GREENYELLOW}};
 
-                    if (yolo_box.class_name == "person") {
+                    if (yolo_box.model == "yolo11n-pose") {
                         for (const auto& line : pose_lines) {
                             M5.Display.drawLine(pose_boxes[line[0]].keypoint.x, pose_boxes[line[0]].keypoint.y - 40,
                                                 pose_boxes[line[1]].keypoint.x, pose_boxes[line[1]].keypoint.y - 40,
@@ -471,7 +477,7 @@ void cameraTask(void* pvParameters)
                         }
                     }
 
-                    if (yolo_box.class_name == "hand") {
+                    if (yolo_box.model == "yolo11n-hand-pose") {
                         for (const auto& line : hand_lines) {
                             M5.Display.drawLine(hand_boxes[line[0]].keypoint.x, hand_boxes[line[0]].keypoint.y - 40,
                                                 hand_boxes[line[1]].keypoint.x, hand_boxes[line[1]].keypoint.y - 40,
@@ -493,7 +499,7 @@ void setup_task(void)
     xTaskCreatePinnedToCore(recvTask, "Receive Task", 8192, NULL, 3, NULL, 1);
     xTaskCreatePinnedToCore(cameraTask, "Camera Task", 8192, NULL, 2, NULL, 0);
     xTaskCreatePinnedToCore(menuTask, "Menu Task", 4096, NULL, 1, NULL, 1);
-    // xTaskCreatePinnedToCore(menuBackTask, "Menu Back Task", 2048, NULL, 0, NULL, 1);
+    xTaskCreatePinnedToCore(menuBackTask, "Menu Back Task", 2048, NULL, 1, NULL, 1);
 }
 
 void setup()
