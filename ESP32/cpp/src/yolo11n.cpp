@@ -91,7 +91,8 @@ struct VlmData {
     bool finish;
 };
 
-const int buttonPin                    = 8;
+const int BlueButtonPin                = 8;
+const int RedButtonPin                 = 9;
 static constexpr std::size_t box_count = 7;
 static box_t box_list[box_count];
 static yolo_box_t yolo_box;
@@ -125,7 +126,8 @@ void play_camera_wav()
 
 void setup_bsp(void)
 {
-    pinMode(buttonPin, INPUT_PULLUP);
+    pinMode(BlueButtonPin, INPUT_PULLUP);
+    pinMode(RedButtonPin, INPUT_PULLUP);
 }
 
 void setup_lcd(void)
@@ -527,10 +529,19 @@ void recvTask(void* pvParameters)
 void button_task(void* pvParameters)
 {
     while (true) {
-        if (!digitalRead(buttonPin)) {
+        if (!digitalRead(BlueButtonPin)) {
             play_camera_wav();
             button = true;
             vTaskDelay(1000);
+        }
+        if (!digitalRead(RedButtonPin)) {
+            play_wav();
+            state = 0;
+            vTaskDelay(100);
+            if (!yolo_work_id.isEmpty()) module_llm.yolo.exit(yolo_work_id);
+            if (!vlm_work_id.isEmpty()) module_llm.vlm.exit(vlm_work_id);
+            if (!melotts_work_id.isEmpty()) module_llm.melotts.exit(melotts_work_id);
+            setup_menu();
         }
         vTaskDelay(100);
     }
@@ -609,10 +620,9 @@ void cameraTask(void* pvParameters)
                     canvas.drawString("<", 30, 40);
                     if (button) {
                         box_list[6].draw();
-                        module_llm.vlm.inference(vlm_work_id,
-                                                 "请用幽默的方式描述这张图片，字数不超过60个。");
-                        button    = false;
-                        inference = true;
+                        module_llm.vlm.inference(vlm_work_id, "请用幽默的方式描述这张图片，字数不超过60个。");
+                        button          = false;
+                        inference       = true;
                         vlm_data.finish = false;
                         canvas.fillRect(0, 0, 320, 240, WHITE);
                         M5.Display.setCursor(50, 50);
@@ -643,7 +653,7 @@ void setup_task(void)
     xTaskCreatePinnedToCore(cameraTask, "Camera Task", 8192, NULL, 2, NULL, 0);
     xTaskCreatePinnedToCore(menuTask, "Menu Task", 8192, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(menuBackTask, "Menu Back Task", 8192, NULL, 1, NULL, 1);
-    xTaskCreatePinnedToCore(button_task, "Button Task", 2048, NULL, 3, NULL, 1);
+    xTaskCreatePinnedToCore(button_task, "Button Task", 8192, NULL, 3, NULL, 1);
 }
 
 void setup()
