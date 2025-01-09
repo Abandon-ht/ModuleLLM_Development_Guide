@@ -73,7 +73,7 @@ def main(host, port):
             "action": "setup",
             "object": "depth_anything.setup",
             "data": {
-                "model": "depth_anything",
+                "model": "depth-anything-ax630c",
                 "response_format": "jpeg.base64.stream",
                 "input": camera_work_id,
                 "enoutput": True
