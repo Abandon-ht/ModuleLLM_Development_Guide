@@ -147,6 +147,8 @@ void setup_lcd(void)
 void setup_menu(void)
 {
     // lv_obj_add_flag(returnbutton, LV_OBJ_FLAG_HIDDEN);
+    canvas.setTextSize(1);
+    canvas.setTextColor(GREEN, GREEN);
     lv_obj_clear_flag(background, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(initialization_state, "");
@@ -213,11 +215,11 @@ void setup_llm(void)
     while (1) {
         if (module_llm.checkConnection()) break;
     }
-    if (lvgl_port_lock()) {
-        lv_label_set_text_fmt(initialization_state, "Reset ModuleLLM %s", loading_animation[(millis() / 500) % 4]);
-        lvgl_port_unlock();
-    }
-    module_llm.sys.reset();
+    // if (lvgl_port_lock()) {
+    //     lv_label_set_text_fmt(initialization_state, "Reset ModuleLLM %s", loading_animation[(millis() / 500) % 4]);
+    //     lvgl_port_unlock();
+    // }
+    // module_llm.sys.reset();
     if (lvgl_port_lock()) {
         lv_label_set_text(initialization_state, "Initialization completed");
         lvgl_port_unlock();
@@ -321,7 +323,7 @@ void setup_vlm(void)
         lv_label_set_text(initialization_state, "Initialization InternVL2_5-1B-MPO completed");
         lvgl_port_unlock();
     }
-    inference = false;
+    inference    = false;
     button_count = 0;
     vTaskDelay(200);
 }
@@ -589,7 +591,8 @@ void vllm_inference()
     frame2jpg(CoreS3.Camera.fb, 50, &out_jpg, &out_jpg_len);
     send_camera_data(out_jpg, out_jpg_len, vlm_work_id);
     free(out_jpg);
-    module_llm.vlm.inference(vlm_work_id, "请用幽默的方式描述这张图片，字数不超过60个。");
+    module_llm.vlm.inference(vlm_work_id,
+                             "Please describe this picture in a humorous way with a word limit of 60 words.");
 }
 
 void action_task(void* pvParameters)
@@ -758,9 +761,9 @@ void setup_task(void)
 {
     mutex = xSemaphoreCreateMutex();
     xTaskCreatePinnedToCore(recvTask, "Receive Task", 8192, NULL, 3, NULL, 1);
-    xTaskCreatePinnedToCore(cameraTask, "Camera Task", 8192, NULL, 2, NULL, 0);
+    xTaskCreatePinnedToCore(cameraTask, "Camera Task", 8192, NULL, 3, NULL, 0);
     xTaskCreatePinnedToCore(menuTask, "Menu Task", 8192, NULL, 1, NULL, 1);
-    xTaskCreatePinnedToCore(menuBackTask, "Menu Back Task", 8192, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(menuBackTask, "Menu Back Task", 8192, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(button_task, "Button Task", 8192, NULL, 3, NULL, 1);
     xTaskCreatePinnedToCore(action_task, "Action Task", 8192, NULL, 3, NULL, 1);
 }

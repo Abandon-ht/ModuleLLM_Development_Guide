@@ -1,0 +1,4 @@
+{
+    "config_enable_tcp": 1,
+    "config_serial_baud": 1500000
+}
