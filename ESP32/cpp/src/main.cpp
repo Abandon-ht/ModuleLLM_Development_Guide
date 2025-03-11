@@ -591,8 +591,10 @@ void vllm_inference()
     frame2jpg(CoreS3.Camera.fb, 50, &out_jpg, &out_jpg_len);
     send_camera_data(out_jpg, out_jpg_len, vlm_work_id);
     free(out_jpg);
+    vTaskDelay(100);
     module_llm.vlm.inference(vlm_work_id,
                              "Please describe this picture in a humorous way with a word limit of 60 words.");
+    // module_llm.vlm.inference(vlm_work_id, "请用幽默的方式描述图片，字数不超过60个"); # 中文输出
 }
 
 void action_task(void* pvParameters)
