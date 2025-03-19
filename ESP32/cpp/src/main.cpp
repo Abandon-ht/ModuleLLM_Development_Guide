@@ -97,8 +97,8 @@ struct VlmData {
     bool finish;
 };
 
-const int BlueButtonPin                = 8;
-const int RedButtonPin                 = 9;
+const int BlueButtonPin                = 1;
+const int RedButtonPin                 = 2;
 static constexpr std::size_t box_count = 7;
 static box_t box_list[box_count];
 static yolo_box_t yolo_box;
@@ -198,7 +198,7 @@ void setup_comm(void)
 void setup_speaker(void)
 {
     CoreS3.Speaker.begin();
-    CoreS3.Speaker.setVolume(100);
+    CoreS3.Speaker.setVolume(10);
 }
 
 void setup_llm(void)
@@ -237,14 +237,22 @@ void setup_yolo_detect(void)
     yolo_config.model = "yolo11n";
     yolo_box.model    = "yolo11n";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
-    while (yolo_work_id == nullptr) vTaskDelay(100);
-    if (lvgl_port_lock()) {
-        lv_label_set_text(initialization_state, "Initialization yolo detection completed");
-        lvgl_port_unlock();
+    while (yolo_work_id.isEmpty()) vTaskDelay(100);
+    if (yolo_work_id == "yolo") {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo detection failed");
+            lvgl_port_unlock();
+        }
+        while (1);
+    } else {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo detection completed");
+            lvgl_port_unlock();
+        }
+        vTaskDelay(200);
+        lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
     }
-    vTaskDelay(200);
-    lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
 }
 
 void setup_yolo_pose(void)
@@ -258,14 +266,22 @@ void setup_yolo_pose(void)
     yolo_config.model = "yolo11n-pose";
     yolo_box.model    = "yolo11n-pose";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
-    while (yolo_work_id == nullptr) vTaskDelay(100);
-    if (lvgl_port_lock()) {
-        lv_label_set_text(initialization_state, "Initialization yolo pose detection completed");
-        lvgl_port_unlock();
+    while (yolo_work_id.isEmpty()) vTaskDelay(100);
+    if (yolo_work_id == "yolo") {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo pose failed");
+            lvgl_port_unlock();
+        }
+        while (1);
+    } else {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo pose completed");
+            lvgl_port_unlock();
+        }
+        vTaskDelay(200);
+        lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
     }
-    vTaskDelay(200);
-    lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
 }
 
 void setup_yolo_seg(void)
@@ -279,14 +295,23 @@ void setup_yolo_seg(void)
     yolo_config.model = "yolo11n-seg";
     yolo_box.model    = "yolo11n-seg";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
-    while (yolo_work_id == nullptr) vTaskDelay(100);
-    if (lvgl_port_lock()) {
-        lv_label_set_text(initialization_state, "Initialization yolo segmentation completed");
-        lvgl_port_unlock();
+    yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
+    while (yolo_work_id.isEmpty()) vTaskDelay(100);
+    if (yolo_work_id == "yolo") {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo segmentation failed");
+            lvgl_port_unlock();
+        }
+        while (1);
+    } else {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo segmentation completed");
+            lvgl_port_unlock();
+        }
+        vTaskDelay(200);
+        lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
     }
-    vTaskDelay(200);
-    lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
 }
 
 void setup_yolo_hand(void)
@@ -300,14 +325,22 @@ void setup_yolo_hand(void)
     yolo_config.model = "yolo11n-hand-pose";
     yolo_box.model    = "yolo11n-hand-pose";
     yolo_work_id      = module_llm.yolo.setup(yolo_config, "yolo_setup");
-    while (yolo_work_id == nullptr) vTaskDelay(100);
-    if (lvgl_port_lock()) {
-        lv_label_set_text(initialization_state, "Initialization yolo hand detection completed");
-        lvgl_port_unlock();
+    while (yolo_work_id.isEmpty()) vTaskDelay(100);
+    if (yolo_work_id == "yolo") {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo hand failed");
+            lvgl_port_unlock();
+        }
+        while (1);
+    } else {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization yolo hand completed");
+            lvgl_port_unlock();
+        }
+        vTaskDelay(200);
+        lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
     }
-    vTaskDelay(200);
-    lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
 }
 
 void setup_vlm(void)
@@ -317,15 +350,24 @@ void setup_vlm(void)
         lvgl_port_unlock();
     }
     m5_module_llm::ApiVlmSetupConfig_t vlm_config;
-    vlm_work_id = module_llm.vlm.setup(vlm_config, "vlm_setup");
-    while (vlm_work_id == nullptr) vTaskDelay(100);
-    if (lvgl_port_lock()) {
-        lv_label_set_text(initialization_state, "Initialization InternVL2_5-1B-MPO completed");
-        lvgl_port_unlock();
+    vlm_config.model = "internvl2.5-1B-364-ax630c";
+    vlm_work_id      = module_llm.vlm.setup(vlm_config, "vlm_setup");
+    while (vlm_work_id.isEmpty()) vTaskDelay(100);
+    if (vlm_work_id == "vlm") {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization VLLM failed");
+            lvgl_port_unlock();
+        }
+        while (1);
+    } else {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization VLLM completed");
+            lvgl_port_unlock();
+        }
+        vTaskDelay(200);
+        // lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
+        // lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
     }
-    inference    = false;
-    button_count = 0;
-    vTaskDelay(200);
 }
 
 void setup_melotts(void)
@@ -337,14 +379,22 @@ void setup_melotts(void)
     m5_module_llm::ApiMelottsSetupConfig_t melotts_config;
     melotts_config.input = {vlm_work_id};
     melotts_work_id      = module_llm.melotts.setup(melotts_config, "melotts_setup");
-    while (melotts_work_id == nullptr) vTaskDelay(100);
-    if (lvgl_port_lock()) {
-        lv_label_set_text(initialization_state, "Initialization meloTTS completed");
-        lvgl_port_unlock();
+    while (melotts_work_id.isEmpty()) vTaskDelay(100);
+    if (melotts_work_id == "melotts") {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization meloTTS failed");
+            lvgl_port_unlock();
+        }
+        while (1);
+    } else {
+        if (lvgl_port_lock()) {
+            lv_label_set_text(initialization_state, "Initialization meloTTS completed");
+            lvgl_port_unlock();
+        }
+        vTaskDelay(200);
+        lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
     }
-    vTaskDelay(200);
-    lv_obj_add_flag(initialization_state, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(background, LV_OBJ_FLAG_HIDDEN);
 }
 
 void setup_yolo(int j)
@@ -440,10 +490,19 @@ void menuBackTask(void* pvParameters)
                 play_wav();
                 box_list[5].touch_id = t.id;
                 state                = 0;
-                vTaskDelay(100);
-                if (!yolo_work_id.isEmpty()) module_llm.yolo.exit(yolo_work_id);
-                if (!vlm_work_id.isEmpty()) module_llm.vlm.exit(vlm_work_id);
-                if (!melotts_work_id.isEmpty()) module_llm.melotts.exit(melotts_work_id);
+                vTaskDelay(200);
+                if (!yolo_work_id.isEmpty()) {
+                    module_llm.yolo.exit(yolo_work_id);
+                    yolo_work_id.clear();
+                }
+                if (!vlm_work_id.isEmpty()) {
+                    module_llm.vlm.exit(vlm_work_id);
+                    vlm_work_id.clear();
+                }
+                if (!melotts_work_id.isEmpty()) {
+                    module_llm.melotts.exit(melotts_work_id);
+                    melotts_work_id.clear();
+                }
                 setup_menu();
             }
 
@@ -592,9 +651,9 @@ void vllm_inference()
     send_camera_data(out_jpg, out_jpg_len, vlm_work_id);
     free(out_jpg);
     vTaskDelay(100);
-    module_llm.vlm.inference(vlm_work_id,
-                             "Please describe this picture in a humorous way with a word limit of 60 words.");
-    // module_llm.vlm.inference(vlm_work_id, "请用幽默的方式描述图片，字数不超过60个"); # 中文输出
+    // module_llm.vlm.inference(vlm_work_id,
+    //  "Please describe this picture in a humorous way with a word limit of 60 words.");
+    module_llm.vlm.inference(vlm_work_id, "请用幽默的方式描述图片，字数不超过60个");  // 中文输出
 }
 
 void action_task(void* pvParameters)
@@ -631,22 +690,51 @@ void recvTask(void* pvParameters)
 
 void button_task(void* pvParameters)
 {
+    static uint32_t last_blue_press = 0;
+    static uint32_t last_red_press  = 0;
+
     while (true) {
+        uint32_t now = xTaskGetTickCount() * portTICK_PERIOD_MS;
+
         if (!digitalRead(BlueButtonPin)) {
-            // play_camera_wav();
-            button_count = 4;
-            vTaskDelay(1000);
+            if ((state == 2) && (inference != true)) {
+                vTaskDelay(20 / portTICK_PERIOD_MS);
+                if (!digitalRead(BlueButtonPin)) {
+                    if (now - last_blue_press > 1000) {
+                        button_count    = 4;
+                        last_blue_press = now;
+                    }
+                }
+            }
         }
+
         if (!digitalRead(RedButtonPin)) {
-            play_wav();
-            state = 0;
-            vTaskDelay(100);
-            if (!yolo_work_id.isEmpty()) module_llm.yolo.exit(yolo_work_id);
-            if (!vlm_work_id.isEmpty()) module_llm.vlm.exit(vlm_work_id);
-            if (!melotts_work_id.isEmpty()) module_llm.melotts.exit(melotts_work_id);
-            setup_menu();
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+            if (!digitalRead(RedButtonPin)) {
+                if (state != 0)
+                    if (now - last_red_press > 1000) {
+                        state = 0;
+                        play_wav();
+                        vTaskDelay(200 / portTICK_PERIOD_MS);
+                        if (!yolo_work_id.isEmpty()) {
+                            module_llm.yolo.exit(yolo_work_id);
+                            yolo_work_id.clear();
+                        }
+                        if (!vlm_work_id.isEmpty()) {
+                            module_llm.vlm.exit(vlm_work_id);
+                            vlm_work_id.clear();
+                        }
+                        if (!melotts_work_id.isEmpty()) {
+                            module_llm.melotts.exit(melotts_work_id);
+                            melotts_work_id.clear();
+                        }
+                        setup_menu();
+                        last_red_press = now;
+                    }
+            }
         }
-        vTaskDelay(100);
+
+        vTaskDelay(20 / portTICK_PERIOD_MS);
     }
 }
 
@@ -714,36 +802,36 @@ void cameraTask(void* pvParameters)
                                      (uint16_t*)CoreS3.Camera.fb->buf);
                     if (button_count > 0) {
                         int edgeLength = 40;
-                        canvas.fillRect(0, 0, edgeLength, 5, RED);                       // 上边
-                        canvas.fillRect(0, 0, 5, edgeLength, RED);                       // 左边
-                        canvas.fillRect(320 - edgeLength, 0, edgeLength, 5, RED);        // 上边
-                        canvas.fillRect(320 - 5, 0, 5, edgeLength, RED);                 // 右边
-                        canvas.fillRect(0, 240 - edgeLength, 5, edgeLength, RED);        // 左边
-                        canvas.fillRect(0, 240 - 5, edgeLength, 5, RED);                 // 下边
-                        canvas.fillRect(320 - edgeLength, 240 - 5, edgeLength, 5, RED);  // 下边
-                        canvas.fillRect(320 - 5, 240 - edgeLength, 5, edgeLength, RED);  // 右边
+                        // canvas.fillRect(0, 0, edgeLength, 5, RED);                       // 上边
+                        // canvas.fillRect(0, 0, 5, edgeLength, RED);                       // 左边
+                        // canvas.fillRect(320 - edgeLength, 0, edgeLength, 5, RED);        // 上边
+                        // canvas.fillRect(320 - 5, 0, 5, edgeLength, RED);                 // 右边
+                        // canvas.fillRect(0, 240 - edgeLength, 5, edgeLength, RED);        // 左边
+                        // canvas.fillRect(0, 240 - 5, edgeLength, 5, RED);                 // 下边
+                        // canvas.fillRect(320 - edgeLength, 240 - 5, edgeLength, 5, RED);  // 下边
+                        // canvas.fillRect(320 - 5, 240 - edgeLength, 5, edgeLength, RED);  // 右边
 
-                        canvas.setTextSize(2);
-                        canvas.setTextDatum(CC_DATUM);
-                        if (button_count == 4) {
-                            canvas.setTextColor(GREEN, GREEN);
-                            canvas.drawString("3", 160, 120);
-                        } else if (button_count == 3) {
-                            canvas.setTextColor(YELLOW, YELLOW);
-                            canvas.drawString("2", 160, 120);
-                        } else if (button_count == 2) {
-                            canvas.setTextColor(RED, RED);
-                            canvas.drawString("1", 160, 120);
-                        } else if (button_count == 1) {
-                            CoreS3.Display.fillScreen(BLACK);
-                            canvas.fillRect(0, 0, 320, 10, SKYBLUE);
-                            canvas.fillRect(0, 230, 320, 10, SKYBLUE);
-                            canvas.fillRect(0, 0, 10, 240, SKYBLUE);
-                            canvas.fillRect(310, 0, 10, 240, SKYBLUE);
-                            canvas.pushRotateZoomWithAA(160, 120, random(-15, 15), 0.8, 0.8);
-                            button_count--;
-                            vllm_inference();
-                        }
+                        // canvas.setTextSize(2);
+                        // canvas.setTextDatum(CC_DATUM);
+                        // if (button_count == 4) {
+                        //     canvas.setTextColor(GREEN, GREEN);
+                        //     canvas.drawString("3", 160, 120);
+                        // } else if (button_count == 3) {
+                        //     canvas.setTextColor(YELLOW, YELLOW);
+                        //     canvas.drawString("2", 160, 120);
+                        // } else if (button_count == 2) {
+                        //     canvas.setTextColor(RED, RED);
+                        //     canvas.drawString("1", 160, 120);
+                        // } else if (button_count == 1) {
+                        CoreS3.Display.fillScreen(BLACK);
+                        canvas.fillRect(0, 0, 320, 10, SKYBLUE);
+                        canvas.fillRect(0, 230, 320, 10, SKYBLUE);
+                        canvas.fillRect(0, 0, 10, 240, SKYBLUE);
+                        canvas.fillRect(310, 0, 10, 240, SKYBLUE);
+                        canvas.pushRotateZoomWithAA(160, 120, random(-15, 15), 0.8, 0.8);
+                        button_count = 0;
+                        vllm_inference();
+                        // }
                     }
                     canvas.pushSprite(&M5.Display, 0, 0);
                     CoreS3.Camera.free();
@@ -767,12 +855,14 @@ void setup_task(void)
     xTaskCreatePinnedToCore(menuTask, "Menu Task", 8192, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(menuBackTask, "Menu Back Task", 8192, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(button_task, "Button Task", 8192, NULL, 3, NULL, 1);
-    xTaskCreatePinnedToCore(action_task, "Action Task", 8192, NULL, 3, NULL, 1);
+    // xTaskCreatePinnedToCore(action_task, "Action Task", 8192, NULL, 3, NULL, 1);
 }
 
 void setup()
 {
-    CoreS3.begin();
+    auto cfg         = M5.config();
+    cfg.output_power = true;
+    CoreS3.begin(cfg);
     lvgl_port_init(M5.Lcd);
     vllm_display();
     setup_bsp();
