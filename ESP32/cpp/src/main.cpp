@@ -350,8 +350,9 @@ void setup_vlm(void)
         lvgl_port_unlock();
     }
     m5_module_llm::ApiVlmSetupConfig_t vlm_config;
-    vlm_config.model = "internvl2.5-1B-364-ax630c";
-    vlm_work_id      = module_llm.vlm.setup(vlm_config, "vlm_setup");
+    vlm_config.model         = "internvl2.5-1B-364-ax630c";
+    vlm_config.max_token_len = 511;
+    vlm_work_id              = module_llm.vlm.setup(vlm_config, "vlm_setup");
     while (vlm_work_id.isEmpty()) vTaskDelay(100);
     if (vlm_work_id == "vlm") {
         if (lvgl_port_lock()) {
@@ -498,6 +499,7 @@ void menuBackTask(void* pvParameters)
                 if (!vlm_work_id.isEmpty()) {
                     module_llm.vlm.exit(vlm_work_id);
                     vlm_work_id.clear();
+                    lv_textarea_set_text(vllm_output, "");
                     inference = false;
                 }
                 if (!melotts_work_id.isEmpty()) {
@@ -723,6 +725,7 @@ void button_task(void* pvParameters)
                         if (!vlm_work_id.isEmpty()) {
                             module_llm.vlm.exit(vlm_work_id);
                             vlm_work_id.clear();
+                            lv_textarea_set_text(vllm_output, "");
                             inference = false;
                         }
                         if (!melotts_work_id.isEmpty()) {
@@ -756,9 +759,15 @@ void cameraTask(void* pvParameters)
 
                     canvas.setTextDatum(bottom_left);
 
-                    canvas.drawString(yolo_box.class_name.c_str(), yolo_box.x1, yolo_box.y1 - 40);
-                    canvas.drawFloat(yolo_box.confidence, 2, yolo_box.x2, yolo_box.y1 - 40);
+                    char result[50];
+                    strcpy(result, yolo_box.class_name.c_str());
+                    strcat(result, " ");
+                    sprintf(result + strlen(result), "%.2f", yolo_box.confidence);
 
+                    int y1_pos = yolo_box.y1 - 40;
+                    if (y1_pos < 24) y1_pos = 24;
+
+                    canvas.drawString(result, yolo_box.x1, y1_pos);
                     canvas.drawRect(yolo_box.x1, yolo_box.y1 - 40, yolo_box.x2, yolo_box.y2 - 40, ORANGE);
 
                     const int pose_lines[][3] = {
