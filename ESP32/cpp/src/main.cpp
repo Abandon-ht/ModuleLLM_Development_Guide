@@ -198,7 +198,7 @@ void setup_comm(void)
 void setup_speaker(void)
 {
     CoreS3.Speaker.begin();
-    CoreS3.Speaker.setVolume(10);
+    CoreS3.Speaker.setVolume(50);
 }
 
 void setup_llm(void)
@@ -498,6 +498,7 @@ void menuBackTask(void* pvParameters)
                 if (!vlm_work_id.isEmpty()) {
                     module_llm.vlm.exit(vlm_work_id);
                     vlm_work_id.clear();
+                    inference = false;
                 }
                 if (!melotts_work_id.isEmpty()) {
                     module_llm.melotts.exit(melotts_work_id);
@@ -597,7 +598,7 @@ void parseJson(const char* jsonString)
         vlm_data.delta  = jsonDoc["data"]["delta"].as<String>();
         vlm_data.finish = jsonDoc["data"]["finish"].as<bool>();
         jsonDoc.clear();
-        lv_obj_add_flag(photoaction, LV_OBJ_FLAG_HIDDEN);
+        // lv_obj_add_flag(photoaction, LV_OBJ_FLAG_HIDDEN);
         if (lvgl_port_lock()) {
             lv_obj_clear_flag(vllm_output, LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(vllm_title, LV_OBJ_FLAG_HIDDEN);
@@ -605,7 +606,7 @@ void parseJson(const char* jsonString)
             lvgl_port_unlock();
         }
         if (vlm_data.finish) {
-            vTaskDelay(8000);
+            vTaskDelay(7000);
             if (lvgl_port_lock()) {
                 lv_obj_add_flag(vllm_output, LV_OBJ_FLAG_HIDDEN);
                 lv_obj_add_flag(vllm_title, LV_OBJ_FLAG_HIDDEN);
@@ -640,7 +641,6 @@ void recv_llm_data(void)
 
 void vllm_inference()
 {
-    inference       = true;
     vlm_data.finish = false;
     play_camera_wav();
 
@@ -723,6 +723,7 @@ void button_task(void* pvParameters)
                         if (!vlm_work_id.isEmpty()) {
                             module_llm.vlm.exit(vlm_work_id);
                             vlm_work_id.clear();
+                            inference = false;
                         }
                         if (!melotts_work_id.isEmpty()) {
                             module_llm.melotts.exit(melotts_work_id);
@@ -801,37 +802,15 @@ void cameraTask(void* pvParameters)
                     canvas.pushImage(0, 0, CoreS3.Display.width(), CoreS3.Display.height(),
                                      (uint16_t*)CoreS3.Camera.fb->buf);
                     if (button_count > 0) {
-                        int edgeLength = 40;
-                        // canvas.fillRect(0, 0, edgeLength, 5, RED);                       // 上边
-                        // canvas.fillRect(0, 0, 5, edgeLength, RED);                       // 左边
-                        // canvas.fillRect(320 - edgeLength, 0, edgeLength, 5, RED);        // 上边
-                        // canvas.fillRect(320 - 5, 0, 5, edgeLength, RED);                 // 右边
-                        // canvas.fillRect(0, 240 - edgeLength, 5, edgeLength, RED);        // 左边
-                        // canvas.fillRect(0, 240 - 5, edgeLength, 5, RED);                 // 下边
-                        // canvas.fillRect(320 - edgeLength, 240 - 5, edgeLength, 5, RED);  // 下边
-                        // canvas.fillRect(320 - 5, 240 - edgeLength, 5, edgeLength, RED);  // 右边
-
-                        // canvas.setTextSize(2);
-                        // canvas.setTextDatum(CC_DATUM);
-                        // if (button_count == 4) {
-                        //     canvas.setTextColor(GREEN, GREEN);
-                        //     canvas.drawString("3", 160, 120);
-                        // } else if (button_count == 3) {
-                        //     canvas.setTextColor(YELLOW, YELLOW);
-                        //     canvas.drawString("2", 160, 120);
-                        // } else if (button_count == 2) {
-                        //     canvas.setTextColor(RED, RED);
-                        //     canvas.drawString("1", 160, 120);
-                        // } else if (button_count == 1) {
                         CoreS3.Display.fillScreen(BLACK);
                         canvas.fillRect(0, 0, 320, 10, SKYBLUE);
                         canvas.fillRect(0, 230, 320, 10, SKYBLUE);
                         canvas.fillRect(0, 0, 10, 240, SKYBLUE);
                         canvas.fillRect(310, 0, 10, 240, SKYBLUE);
-                        canvas.pushRotateZoomWithAA(160, 120, random(-15, 15), 0.8, 0.8);
+                        canvas.pushRotateZoomWithAA(160, 120, random(-15, 15), -0.8, 0.8);
                         button_count = 0;
+                        inference    = true;
                         vllm_inference();
-                        // }
                     }
                     canvas.pushSprite(&M5.Display, 0, 0);
                     CoreS3.Camera.free();
